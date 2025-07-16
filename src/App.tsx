@@ -42,12 +42,10 @@ export const App: React.FC = () => {
 
   const handleSelectChange = (value: string) => {
     setStatus(value);
-    fetchTodos(() => getTodos());
   };
 
   const handleInputChange = (value: string) => {
     setQuery(value);
-    fetchTodos(() => getTodos());
   };
 
   const handleClearInput = () => {

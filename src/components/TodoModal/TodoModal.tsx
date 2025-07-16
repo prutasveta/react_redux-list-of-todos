@@ -23,7 +23,7 @@ export const TodoModal: React.FC<Props> = ({ selectedTodo, onClick }) => {
         setErrorMessage('Try again later');
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedTodo.userId]);
 
   return (
     <div className="modal is-active" data-cy="modal">
