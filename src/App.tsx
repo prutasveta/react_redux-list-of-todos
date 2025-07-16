@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import 'bulma/css/bulma.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 
@@ -9,9 +9,11 @@ import { TodoModal } from './components/TodoModal';
 import { Loader } from './components/Loader';
 import { Todo } from './types/Todo';
 import { getTodos } from './api';
+import { Status } from './types/Status';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
+  // const [filteredTodos, setFilteredTodos] = useState<Todo[]>([]);
 
   // const dispatch = useDispatch();
   // const todos = useAppSelector(state => state.todos);
@@ -22,12 +24,14 @@ export const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const [query, setQuery] = useState('');
-  const [status, setStatus] = useState<string>('');
+  const [status, setStatus] = useState<Status>('all');
 
   const fetchTodos = (getTodosFn: () => Promise<Todo[]>) => {
     setLoading(true);
     getTodosFn()
-      .then(setTodos)
+      .then(data => {
+        setTodos(data);
+      })
       .catch(() => {
         setErrorMessage('Try again later');
       })
@@ -35,17 +39,30 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
-
     fetchTodos(() => getTodos());
-  }, [status, query]);
+  }, []);
+
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filteredTodos = useMemo(() => {
+    return todos.filter(todo => {
+      const matchesStatus =
+        status === 'all' ||
+        (status === 'active' && !todo.completed) ||
+        (status === 'completed' && todo.completed);
+
+      const matchesQuery = todo.title.toLowerCase().includes(normalizedQuery);
+
+      return matchesStatus && matchesQuery;
+    });
+  }, [todos, status, normalizedQuery]);
 
   const handleSelectChange = (value: string) => {
-    setStatus(value);
+    setStatus(value as Status);
   };
 
   const handleInputChange = (value: string) => {
-    setQuery(value);
+    setQuery(value as Status);
   };
 
   const handleClearInput = () => {
@@ -77,7 +94,7 @@ export const App: React.FC = () => {
 
               {!loading && todos.length > 0 && (
                 <TodoList
-                  todos={todos}
+                  todos={filteredTodos}
                   selectedTodoId={selectedTodo?.id}
                   onSelect={todo => setSelectedTodo(todo)}
                 />
